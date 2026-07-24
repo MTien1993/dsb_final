@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL,GRAD,opsz@100..700,0..1,-50..200,20..48&display=swap" rel="stylesheet">
 <script>
   tailwind.config = {
     darkMode: "class",
@@ -130,12 +129,7 @@
   }
   .font-display { font-family: 'Inter', system-ui, sans-serif; }
   .font-mono   { font-family: 'Inter', system-ui, sans-serif; font-feature-settings: 'tnum'; }
-  .material-symbols-outlined {
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-    user-select: none;
-  }
-  .ico-fill { font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
-  .ico-bold { font-variation-settings: 'FILL' 0, 'wght' 600, 'GRAD' 0, 'opsz' 24; }
+  .ph, [class^="ph-"], [class*=" ph-"] { line-height: 1; user-select: none; }
   /* Hide scrollbar utility */
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
@@ -208,7 +202,10 @@
 
   /* Fix text clipping */
   select, button, input { line-height: normal; }
-  </style>
+  
+  /* Lucide fill variant */
+  svg.lucide.lucide-fill { fill: currentColor; stroke: none; }
+</style>
 
 <style>
   /* ── Global field standardization ── */
@@ -359,6 +356,8 @@
 </template>
 <div id="root"></div>
 
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
@@ -1075,14 +1074,81 @@ window.DSB_DATA = {
 const { useState, useEffect, useRef, useMemo, useCallback, createContext, useContext, Fragment } = React;
 
 // --- Icon ---
-function Icon({ name, className = "", filled = false, weight = 400, size = 20, style }) {
-  const fvs = `'FILL' ${filled ? 1 : 0}, 'wght' ${weight}, 'GRAD' 0, 'opsz' 24`;
-  return (
-    <span
-      className={`material-symbols-outlined select-none ${className}`}
-      style={{ fontVariationSettings: fvs, fontSize: size, lineHeight: 1, ...(style || {}) }}
-    >{name}</span>
-  );
+const PH_MAP = {
+  account_balance:"bank", account_balance_wallet:"wallet", account_tree:"tree-structure",
+  add:"plus", analytics:"chart-bar", arrow_back:"arrow-left", arrow_drop_down:"caret-down",
+  arrow_drop_up:"caret-up", arrow_forward:"arrow-right", arrow_outward:"arrow-up-right",
+  arrow_upward:"arrow-up", article:"article", assessment:"clipboard-text",
+  assignment_late:"clipboard-text", diversity_3:"users-three", inventory_2:"package", sticky_note_2:"note", auto_awesome:"sparkle", auto_awesome_mosaic:"squares-four",
+  auto_graph:"trend-up", badge:"identification-badge", balance:"scales",
+  beach_access:"umbrella", bolt:"lightning", book:"book",
+  bookmark:"bookmark", bookmark_add:"bookmark-simple",
+  bookmark_added:"bookmark-simple", bookmark_border:"bookmark",
+  bookmarks:"bookmarks", build:"wrench", business:"buildings",
+  calculate:"calculator", calendar_month:"calendar", calendar_today:"calendar",
+  call:"phone", campaign:"megaphone", candlestick_chart:"chart-bar",
+  card_giftcard:"gift", category:"squares-four", chat:"chat-circle",
+  chat_bubble:"chat-circle-dots", chat_bubble_outline:"chat-circle",
+  check:"check", check_circle:"check-circle", checklist:"list-checks",
+  chevron_left:"caret-left", chevron_right:"caret-right", close:"x",
+  close_fullscreen:"arrows-in-simple", comment:"chat", compare_arrows:"arrows-left-right",
+  compass_calibration:"crosshair", confirmation_number:"ticket",
+  contact_page:"address-book", content_copy:"copy", credit_card:"credit-card",
+  currency_exchange:"arrows-left-right", dashboard:"squares-four",
+  delete:"trash", delete_sweep:"trash", description:"file-text",
+  diamond:"diamond", document_scanner:"scan", domain_add:"buildings",
+  donut_small:"chart-donut", download:"download-simple", edit:"pencil",
+  elderly:"person", email:"envelope", emoji_events:"trophy", emoji_objects:"lightbulb",
+  error:"warning-circle", event:"calendar-check", event_available:"calendar-check",
+  event_repeat:"calendar", event_upcoming:"calendar-plus",
+  expand_less:"caret-up", expand_more:"caret-down", explore:"compass", fact_check:"check-square",
+  family_restroom:"users-three", favorite:"heart", fiber_new:"tag",
+  filter_alt:"funnel", filter_list:"funnel-simple", fingerprint:"fingerprint",
+  flag:"flag", forum:"chats", grid_view:"squares-four", group:"users-three",
+  groups:"users-three", handshake:"handshake", headset_mic:"headset",
+  health_and_safety:"shield-check", help:"question", history:"clock-counter-clockwise",
+  history_edu:"scroll", home_work:"house", hub:"tree-structure",
+  inbox:"tray", info:"info", insights:"trend-up", inventory:"package",
+  lan:"tree-structure", language:"globe", leaderboard:"chart-bar",
+  lightbulb:"lightbulb", list:"list", list_alt:"list",
+  local_fire_department:"fire", lock:"lock", logout:"sign-out", loop:"repeat",
+  mail:"envelope", manage_accounts:"user-gear", medical_services:"first-aid-kit",
+  menu:"list", menu_book:"book-open", mic:"microphone", monitoring:"monitor",
+  more_horiz:"dots-three", more_vert:"dots-three-vertical", my_location:"map-pin",
+  note:"note", note_add:"note-pencil", notification_important:"bell-ringing",
+  notifications:"bell", open_in_full:"arrows-out-simple", open_in_new:"arrow-square-out",
+  palette:"palette", payments:"money", pending_actions:"clipboard",
+  people:"users-three", percent:"percent", person:"user", person_add:"user-plus",
+  person_off:"user-minus", phone_missed:"phone-x", play_arrow:"play",
+  play_circle:"play-circle", podcasts:"broadcast", policy:"shield-check",
+  print:"printer", psychology:"brain", query_stats:"trend-up",
+  question_answer:"chat-circle", quiz:"question", radar:"crosshair", radar:"target",
+  radio_button_unchecked:"circle", real_estate_agent:"house",
+  receipt:"receipt", receipt_long:"receipt", refresh:"arrow-clockwise",
+  remove:"minus", request_quote:"file-plus", restart_alt:"arrow-counter-clockwise",
+  rhythm:"wave-sine", right_panel_close:"sidebar-simple", right_panel_open:"sidebar-simple",
+  rocket_launch:"rocket", route:"path", rule:"ruler", savings:"piggy-bank",
+  schedule:"clock", school:"graduation-cap", search:"magnifying-glass",
+  self_improvement:"leaf", sell:"tag", send:"paper-plane-tilt",
+  sentiment_very_satisfied:"smiley", share:"share", share:"share-network", shield:"shield",
+  shield_person:"shield-check", show_chart:"chart-line", slideshow:"presentation",
+  sort:"arrows-down-up", ssid_chart:"wave-sine", stacked_line_chart:"trend-up",
+  stairs:"steps", stars:"star", storage:"hard-drive", summarize:"list-bullets",
+  supervisor_account:"users-three", support_agent:"headset", swap_horiz:"arrows-left-right",
+  task_alt:"check-square", timeline:"list-checks", track_changes:"git-diff",
+  travel_explore:"globe", trending_down:"trend-down", trending_up:"trend-up",
+  tune:"sliders", upload_file:"upload-simple", verified:"seal-check",
+  verified_user:"shield-check", videocam:"video-camera", viewport:"frame-corners",
+  visibility:"eye", warning:"warning", work:"briefcase", workspace_premium:"star",
+};
+
+function Icon({ name, className = "", filled = false, size = 20, style }) {
+  const phName = PH_MAP[name] || name;
+  const weightClass = filled ? "ph-fill ph-" : "ph ph-";
+  return React.createElement("i", {
+    className: (weightClass + phName + " select-none " + (className || "")).trim(),
+    style: Object.assign({ fontSize: size, lineHeight: 1 }, style || {}),
+  });
 }
 
 // --- Avatar ---
@@ -1187,9 +1253,7 @@ function Alert({ children, tone = "info", showIcon = true, title, className = ""
   return (
     <div className={`flex items-start gap-2.5 rounded-lg border px-3.5 py-2.5 ${t.bg} ${t.border} ${className}`}>
       {showIcon && (
-        <span className="material-symbols-outlined flex-shrink-0 mt-0.5" style={{fontSize:16,lineHeight:1,color:t.icon}}>
-          {t.iconName}
-        </span>
+        <Icon name={t.iconName || "info"} size={16} style={{ color: t.icon, flexShrink: 0, marginTop: 2 }} />
       )}
       <div className="flex flex-col gap-0.5">
         {title && <p className="text-[12px] font-semibold" style={{color:t.text}}>{title}</p>}
@@ -1203,7 +1267,7 @@ function Alert({ children, tone = "info", showIcon = true, title, className = ""
 function Caption({ children, className = "" }) {
   return (
     <div className={`flex items-start gap-1.5 ${className}`}>
-      <span className="material-symbols-outlined flex-shrink-0 mt-0.5" style={{fontSize:13,lineHeight:1,color:"#007AFF"}}>info</span>
+      <Icon name="info" size={13} className="flex-shrink-0 mt-0.5" style={{color:"#007AFF"}} />
       <p className="text-[12px] text-[#737373] leading-relaxed">{children}</p>
     </div>
   );
@@ -1669,7 +1733,7 @@ class ErrorBoundary extends React.Component {
       return (
         <div className="flex flex-col items-center justify-center min-h-[300px] gap-3 p-8 text-center">
           <span className="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center">
-            <span className="material-symbols-outlined" style={{fontSize:24}}>error</span>
+            <Icon name="error" size={24} />
           </span>
           <p className="text-[14px] font-semibold text-[#161616]">Lỗi hiển thị</p>
           <p className="text-[12px] text-[#737373] max-w-[40ch]">{String(this.state.error.message)}</p>
@@ -7559,7 +7623,7 @@ Object.assign(window, {
         )}
         {note && (
           <div className="flex items-start gap-2 px-4 py-2.5 border-t border-[#EBEBEB] bg-[#FAFAFA]">
-            <span className="material-symbols-outlined shrink-0 mt-0.5" style={{fontSize:13,lineHeight:1,color:"#007AFF"}}>info</span>
+            <Icon name="info" size={13} className="shrink-0 mt-0.5" style={{color:"#007AFF"}} />
             <p className="text-[12px] text-[#737373]">{note}</p>
           </div>
         )}
@@ -7936,7 +8000,7 @@ Object.assign(window, {
             )}
             {note && (
               <div className="flex items-start gap-1.5 px-4 py-2.5 border-t border-[#EBEBEB] bg-[#FAFAFA]">
-                <span className="material-symbols-outlined shrink-0 mt-0.5" style={{fontSize:13,lineHeight:1,color:"#007AFF"}}>info</span>
+                <Icon name="info" size={13} className="shrink-0 mt-0.5" style={{color:"#007AFF"}} />
                 <p className="text-[12px] text-[#737373]">{note}</p>
               </div>
             )}
@@ -8782,7 +8846,7 @@ Object.assign(window, {
             </div>
           </div>
           <div className="flex items-start gap-1.5 px-4 py-2.5 border-t border-[#EBEBEB] bg-[#FAFAFA]">
-            <span className="material-symbols-outlined shrink-0 mt-0.5" style={{fontSize:13,lineHeight:1,color:"#007AFF"}}>info</span>
+            <Icon name="info" size={13} className="shrink-0 mt-0.5" style={{color:"#007AFF"}} />
             <p className="text-[12px] text-[#737373]">Dữ liệu 3 tháng gần nhất bao gồm dữ liệu hôm nay. Trường hợp người dùng chọn dữ liệu quá 3 tháng, dữ liệu hôm nay sẽ không được hiển thị.</p>
           </div>
         </div>
@@ -9139,7 +9203,7 @@ Object.assign(window, {
             </div>
           </div>
           <div className="flex items-start gap-2 px-4 py-2.5 border-t border-[#EBEBEB] bg-[#FAFAFA]">
-            <span className="material-symbols-outlined shrink-0 mt-0.5" style={{fontSize:13,lineHeight:1,color:"#007AFF"}}>info</span>
+            <Icon name="info" size={13} className="shrink-0 mt-0.5" style={{color:"#007AFF"}} />
             <p className="text-[12px] text-[#737373]">Dữ liệu 6 tháng gần nhất không bao gồm dữ liệu hôm nay.</p>
           </div>
         </div>
@@ -10135,7 +10199,7 @@ Object.assign(window, {
             (isGroupActive
               ? "bg-[#EBF6F3] text-[#3A9487] ring-1 ring-[#3A9487]/30"
               : "text-[#737373] hover:bg-[#F5F5F5] hover:text-[#3A9487]")}>
-          <Icon name={group.icon} size={15} filled={isGroupActive} className={isGroupActive ? "text-[#3A9487]" : ""} />
+          <Icon name={activeItem ? activeItem.icon : group.icon} size={15} filled={isGroupActive} className={isGroupActive ? "text-[#3A9487]" : ""} />
           <span>{activeItem ? activeItem.label : group.label}</span>
           <Icon name={open ? "expand_less" : "expand_more"} size={16}
             className={isGroupActive ? "text-[#3A9487]/60" : "text-[#A3A3A3]"} />
@@ -11795,14 +11859,14 @@ function ActiveClients({ onOpen }) {
                         {c.nac === "alert" && (
                           <span title={c.nacReason || "NAC alert"}
                             className="shrink-0 inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 h-5 rounded-full bg-red-50 text-red-600 normal-case tracking-normal">
-                            <span className="material-symbols-outlined" style={{ fontSize: 11, fontVariationSettings:"'FILL' 1" }}>campaign</span>
+                            <Icon name="campaign" size={11} filled={true} />
                             {c.nacPriority || "NAC"}
                           </span>
                         )}
                         {c.nac === "watch" && (
                           <span title={c.nacReason || "Cần theo dõi"}
                             className="shrink-0 inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 h-5 rounded-full bg-amber-50 text-amber-700 normal-case tracking-normal">
-                            <span className="material-symbols-outlined" style={{ fontSize: 11 }}>visibility</span>
+                            <Icon name="visibility" size={11} />
                             {c.nacPriority || "P2"}
                           </span>
                         )}
@@ -12378,7 +12442,7 @@ function ProductSearch() {
                     {p.suitabilityGate && (
                       <button onClick={() => setGateModal(p)}
                         className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 h-5 rounded-md bg-amber-50 text-amber-700 ring-1 ring-amber-200 hover:bg-amber-100 transition-colors normal-case tracking-normal">
-                        <span className="material-symbols-outlined" style={{ fontSize: 11, fontVariationSettings:"'FILL' 1" }}>warning</span>
+                        <Icon name="warning" size={11} filled={true} />
                         Suitability Gate
                       </button>
                     )}
@@ -12516,8 +12580,8 @@ function PluginCard({ plugin, onToggle, onOpen }) {
           <div className="flex items-center gap-1.5">
             {plugin.hot && <Badge tone="amber" size="xs" icon="local_fire_department">Hot</Badge>}
             {plugin.installed
-              ? <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EBF6F3] text-[#3A9487] ring-1 ring-[#9AD2C9] normal-case tracking-normal">Installed</span>
-              : <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F5F5F5] text-[#737373] ring-1 ring-[#DADADA] normal-case tracking-normal">Available</span>
+              ? <Badge tone="teal" size="xs">Installed</Badge>
+              : <Badge tone="neutral" size="xs">Available</Badge>
             }
           </div>
         </div>
@@ -12596,7 +12660,8 @@ function ScreenDworkTools() {
           <div className="flex items-center gap-1.5 flex-wrap">
             {PLUGIN_CATS.map(c => (
               <button key={c} onClick={() => setCat(c)}
-                className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors ${cat === c ? "bg-[#161616] text-white" : "bg-[#F5F5F5] hover:bg-[#EBEBEB] text-[#737373]"}`}>
+                className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[12px] font-medium transition-colors ${cat === c ? "bg-[#EBF6F3] ring-1 ring-[#3A9487] text-[#3A9487]" : "bg-white ring-1 ring-[#DADADA] text-[#474747] hover:bg-[#F5F5F5]"}`}>
+                {cat === c && <Icon name="check" size={12} />}
                 {c}
               </button>
             ))}
@@ -12610,9 +12675,9 @@ function ScreenDworkTools() {
             { id: "available", label: "Available",  count: availableCount },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-[14px] font-medium border-b-2 transition-colors -mb-px ${tab === t.id ? "border-[#161616] text-[#161616]" : "border-transparent text-[#737373] hover:text-[#2A2A2A]"}`}>
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-[14px] font-medium border-b-2 transition-colors -mb-px ${tab === t.id ? "border-[#3A9487] text-[#3A9487] font-semibold" : "border-transparent text-[#737373] hover:text-[#3A9487] hover:border-[#C4E5DF]"}`}>
               {t.label}
-              <span className={`text-[12px] font-bold px-1.5 py-0.5 rounded-full ${tab === t.id ? "bg-[#161616] text-white" : "bg-[#F5F5F5] text-[#737373]"} font-mono`}>{t.count}</span>
+              <span className={`text-[12px] font-bold px-1.5 py-0.5 rounded-full ${tab === t.id ? "bg-[#3A9487] text-white" : "bg-[#F5F5F5] text-[#737373]"} font-mono`}>{t.count}</span>
             </button>
           ))}
         </div>
@@ -12629,8 +12694,8 @@ function ScreenDworkTools() {
         )}
 
         {/* Developer notice */}
-        <div className="mt-6 rounded-xl bg-[#F5F5F5] ring-1 ring-[#EBEBEB] px-5 py-4 flex items-center gap-3 text-[12px] text-[#737373]">
-          <Icon name="info" size={16} className="text-[#A3A3A3] shrink-0" />
+        <div className="mt-6 inline-flex items-start gap-1.5 text-[12px] text-[#737373]">
+          <Icon name="info" size={13} className="shrink-0 mt-0.5" style={{color:"#007AFF"}} />
           <span>Plugin chỉ được thêm bởi <span className="font-semibold text-[#161616]">DSB Internal Dev Team</span>. Nếu bạn muốn đề xuất plugin mới, gửi request qua <span className="font-semibold">Helpdesk → Feature Request</span>.</span>
         </div>
 
